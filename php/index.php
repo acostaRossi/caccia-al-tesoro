@@ -6,18 +6,18 @@
 
     //die();
 
-    $maxAttempts = 4;
+    $maxAttempts = 5;
     $flowerbed = 9;
 
     function generateTreasures() {
 
         global $flowerbed;
 
-        $n1 = rand(0, $flowerbed);
-        $n2 = rand(0, $flowerbed);
+        $n1 = rand(0, $flowerbed - 1);
+        $n2 = rand(0, $flowerbed - 1);
 
         while($n1 === $n2) {
-            $n2 = rand(0, $flowerbed);
+            $n2 = rand(0, $flowerbed - 1);
         }
 
         $_SESSION["treasures"] = [$n1, $n2];
@@ -66,7 +66,7 @@
                     $_SESSION["treasures-found"]++;
                 }
 
-                if($_SESSION["treasures-found"] < 2 && count($_SESSION["selected"]) >= $maxAttempts) {
+                if($_SESSION["treasures-found"] < 2 && count($_SESSION["selected"]) - $_SESSION["treasures-found"] >= $maxAttempts) {
                     $_SESSION["status"] = "game-over";
                 }
                 if($_SESSION["treasures-found"] >= 2) {
@@ -76,7 +76,7 @@
         }
     }
 
-    $startNewMatch = !$_SESSION["treasures"] || (isset($_POST["new-game"]) && $_POST["new-game"] = "1");
+    $startNewMatch = !$_SESSION || !$_SESSION["treasures"] || ($_POST && isset($_POST["new-game"]) && $_POST["new-game"] = "1");
 
     if($startNewMatch) {
         newMatch();
@@ -86,7 +86,7 @@
 
     $matchStatus = isset($_SESSION["status"]) ? $_SESSION["status"] : "play";
 
-    $attemptsAvailable = $maxAttempts - count($_SESSION["selected"]);
+    $attemptsAvailable = $maxAttempts - count($_SESSION["selected"]) + $_SESSION["treasures-found"];
 ?>
 
 <!DOCTYPE html>
@@ -95,7 +95,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>HTML 5 Boilerplate</title>
+    <title>The king garden game</title>
     <link rel="stylesheet" href="../assets/css/style.css">
 </head>
 <body>
@@ -107,9 +107,11 @@
         <?php
         for($i=0; $i<$flowerbed; $i++) {
             $class = "";
-            if(in_array($i, $_SESSION["selected"])) {
+            if(in_array($i, $_SESSION["selected"]) || $matchStatus === "game-over") {
+                // mark as selected
                 $class = "selected";
                 if(in_array($i, $_SESSION["treasures"])) {
+                    // mark as a treasure found
                     $class = "treasure";
                 }
             }
